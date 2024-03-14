@@ -1,10 +1,10 @@
 {
-  "name": "refine-firebase",
-  "version": "1.2.1",
+  "name": "refine-firebase-mgradyn",
+  "version": "1.0.0",
   "description": "Firebase Tool for Refine",
   "main": "lib/index.js",
-  "author": "Resul TURAN",
-  "license": "MIT",
+  "author": "mgradyn",
+  "license": "ISC",
   "keywords": [
     "Refine",
     "Firebase"
@@ -27,6 +27,6 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/rturan29/refine-firebase.git"
+    "url": "https://github.com/mgradyn/refine-firebase-mgradyn"
   }
 }
