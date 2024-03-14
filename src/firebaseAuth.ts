@@ -1,5 +1,5 @@
 import { FirebaseApp } from "@firebase/app";
-import { AuthProvider } from "@pankod/refine-core";
+import { AuthProvider } from "@refinedev/core";
 import {
   Auth,
   inMemoryPersistence,
@@ -39,6 +39,7 @@ export class FirebaseAuth {
     this.handleLogIn = this.handleLogIn.bind(this);
     this.handleRegister = this.handleRegister.bind(this);
     this.handleLogOut = this.handleLogOut.bind(this);
+    this.handleError = this.handleError.bind(this);
     this.handleResetPassword = this.handleResetPassword.bind(this);
     this.onUpdateUserData = this.onUpdateUserData.bind(this);
     this.getUserIdentity = this.getUserIdentity.bind(this);
@@ -47,9 +48,25 @@ export class FirebaseAuth {
     this.getPermissions = this.getPermissions.bind(this);
   }
 
+  public async handleError(error) {
+    if (error.status === 401 || error.status === 403) {
+      return {
+        logout: true,
+        redirectTo: "/login",
+        error,
+      };
+    }
+
+    return {};
+  }
+
   public async handleLogOut() {
+    localStorage.removeItem("auth");
     await signOut(this.auth);
-    await this.authActions?.onLogout?.(this.auth);
+    return {
+      success: true,
+      redirectTo: "/login",
+    };
   }
 
   public async handleRegister(args: IRegisterArgs) {
@@ -99,14 +116,36 @@ export class FirebaseAuth {
         const userToken = await userCredential?.user?.getIdToken?.();
         if (userToken) {
           this.authActions?.onLogin?.(userCredential.user);
+          return {
+            success: true,
+            redirectTo: "/",
+          };
         } else {
-          return Promise.reject(new Error("User is not found"));
+          return {
+            success: false,
+            error: {
+              message: "Login Error",
+              name: "User is not found",
+            },
+          };
         }
       } else {
-        return Promise.reject(new Error("User is not found"));
+        return {
+          success: false,
+          error: {
+            message: "Login Error",
+            name: "User is not found",
+          },
+        };
       }
     } catch (error) {
-      return Promise.reject(error);
+      return {
+        success: false,
+        error: {
+          message: "Login Error",
+          name: error,
+        },
+      };
     }
   }
 
@@ -157,9 +196,19 @@ export class FirebaseAuth {
 
   private async handleCheckAuth() {
     if (await this.getFirebaseUser()) {
-      return Promise.resolve();
+      return {
+        authenticated: true,
+      };
     } else {
-      return Promise.reject(new Error("User is not found"));
+      return {
+        authenticated: false,
+        logout: true,
+        redirectTo: "/login",
+        error: {
+          message: "User not found, Check failed",
+          name: "Unauthorized",
+        },
+      };
     }
   }
 
@@ -183,10 +232,10 @@ export class FirebaseAuth {
     return {
       login: this.handleLogIn,
       logout: this.handleLogOut,
-      checkAuth: this.handleCheckAuth,
-      checkError: () => Promise.resolve(),
+      check: this.handleCheckAuth,
+      onError: this.handleError,
       getPermissions: this.getPermissions,
-      getUserIdentity: this.getUserIdentity,
+      getIdentity: this.getUserIdentity,
     };
   }
 }
