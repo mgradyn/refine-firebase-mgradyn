@@ -1,6 +1,6 @@
 {
   "name": "refine-firebase-gradyn",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Firebase Tool for Refine",
   "main": "src/index.ts",
   "author": "mgradyn",
